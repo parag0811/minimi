@@ -48,3 +48,9 @@ body {
 *::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* Tailwind v4 resets buttons to cursor:default; restore the click affordance */
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}

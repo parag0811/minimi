@@ -122,15 +122,13 @@ function Bubble({ message }: { message: UIMessage }) {
               );
             }
             const tool = getToolInfo(part);
-            if (tool) {
+            if (tool && tool.done) {
               return (
                 <div
                   key={i}
-                  className={`mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs last:mb-0 ${
-                    tool.done ? "bg-emerald-50 text-emerald-700" : "bg-indigo-50 text-indigo-600"
-                  }`}
+                  className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs text-emerald-700 last:mb-0"
                 >
-                  {tool.done ? <CheckIcon /> : <Spinner />}
+                  <CheckIcon />
                   {tool.label}
                 </div>
               );
@@ -143,14 +141,13 @@ function Bubble({ message }: { message: UIMessage }) {
   );
 }
 
-function TypingIndicator() {
+function WorkingIndicator({ label }: { label: string }) {
   return (
     <div className="flex items-start gap-3">
       <AssistantAvatar />
-      <div className="flex items-center gap-1 rounded-2xl rounded-tl-md border border-slate-200/70 bg-white px-4 py-3.5 shadow-sm">
-        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
-        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
-        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400" />
+      <div className="flex items-center gap-2 rounded-2xl rounded-tl-md border border-slate-200/70 bg-white px-4 py-3 shadow-sm">
+        <Spinner />
+        <span className="text-sm text-slate-500">{label}</span>
       </div>
     </div>
   );
@@ -207,11 +204,20 @@ export default function Chat() {
 
   const last = messages[messages.length - 1];
   const isAssistant = last?.role === "assistant";
-  const activeTool =
-    isAssistant && last.parts.some((p) => { const t = getToolInfo(p); return !!t && !t.done; });
-  const hasContent =
-    isAssistant && last.parts.some((p) => p.type === "text" || (getToolInfo(p)?.done ?? false));
-  const showTyping = busy && !activeTool && !hasContent;
+  const activeToolPart = isAssistant
+    ? last.parts.find((p) => { const t = getToolInfo(p); return !!t && !t.done; })
+    : undefined;
+  const hasText = isAssistant && last.parts.some((p) => p.type === "text");
+
+  let activity: string | null = null;
+  if (busy) {
+    if (activeToolPart) {
+      activity =
+        activeToolPart.type === "tool-web_search" ? "Searching the web…" : "Recalling your history…";
+    } else if (!hasText) {
+      activity = "Thinking…";
+    }
+  }
 
   const send = (text: string) => {
     const trimmed = text.trim();
@@ -227,11 +233,16 @@ export default function Chat() {
   };
 
   const loadConversation = async (id: string) => {
-    const res = await fetch(`/api/conversations/${id}`);
-    const data = await res.json();
-    if (Array.isArray(data.messages)) {
-      setActiveId(id);
-      setMessages(data.messages.map(toUIMessage));
+    try {
+      const res = await fetch(`/api/conversations/${id}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data.messages)) {
+        setActiveId(id);
+        setMessages(data.messages.map(toUIMessage));
+      }
+    } catch {
+      /* ignore */
     }
   };
 
@@ -318,7 +329,7 @@ export default function Chat() {
               {messages.map((message) => (
                 <Bubble key={message.id} message={message} />
               ))}
-              {showTyping && <TypingIndicator />}
+              {activity && <WorkingIndicator label={activity} />}
             </div>
           )}
         </div>
