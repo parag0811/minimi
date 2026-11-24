@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Chat Agent with Web Search
 
-## Getting Started
+A conversational AI agent with live web search and persistent memory. Ask it anything; it searches
+the web, cites its sources, and remembers your past conversations — including re-checking whether
+its old answers are still correct.
 
-First, run the development server:
+Built with **Next.js**, the **Vercel AI SDK**, **Google Gemini** (free tier), **Tavily** (free
+tier), and **SQLite**.
+
+## Quick start
+
+```bash
+npm install
+
+# copy the sample env file and add your two API keys
+cp .env.example .env.local
+```
+
+Add your keys to `.env.local`:
+
+```env
+GOOGLE_GENERATIVE_AI_API_KEY=...   # from https://aistudio.google.com  (free tier)
+TAVILY_API_KEY=...                 # from https://tavily.com          (free tier)
+```
+
+Then run:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 and chat.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> No database setup is needed — the agent stores its memory in a local SQLite file (`data/chat.db`)
+> that's created automatically.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## How it works
 
-## Learn More
+- The agent has one tool, **web search** (via Tavily), plus a **persistent memory** stored in SQLite.
+- Every message is saved with a timestamp, so the agent can recall *what you asked earlier* and
+  *what it answered* — by date ("3 November") or by topic ("Postgres hosting").
+- When you ask "is that still correct?", it recalls the old answer, re-searches with a freshness
+  filter, and tells you what changed.
+- Answers stream back as they're generated, with source links.
 
-To learn more about Next.js, take a look at the following resources:
+## Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Next.js 16** (App Router) + **TypeScript**
+- **Vercel AI SDK** — agent loop, tool calling, streaming
+- **Google Gemini** (`gemini-3.8-flash`) — free tier
+- **Tavily** — web search, free tier
+- **SQLite** (`better-sqlite3`) — memory
+- **React** + `useChat` — UI
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project structure
 
-## Deploy on Vercel
+```
+app/
+  page.tsx              # chat UI
+  api/chat/route.ts     # streaming endpoint
+lib/
+  agent.ts              # the agent loop (model + tools)
+  prompt.ts             # system prompt (injects today's date)
+  memory.ts             # SQLite schema + queries
+  config.ts             # env vars
+  dates.ts              # date helpers
+  tools/
+    search.ts           # web search (Tavily) + cache
+    recall.ts           # past-conversation recall
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See `DESIGN.md` for the full design rationale.

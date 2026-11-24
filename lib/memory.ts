@@ -184,6 +184,32 @@ export function allMessages(conversationId: string): Message[] {
   return rows.map(mapRow);
 }
 
+/** A conversation summary, for the sidebar list. */
+export interface ConversationSummary {
+  id: string;
+  title: string;
+  updatedAt: number;
+}
+
+/** All conversations, most recently updated first. */
+export function listConversations(): ConversationSummary[] {
+  const rows = getDb()
+    .prepare("SELECT id, title, updated_at FROM conversations ORDER BY updated_at DESC")
+    .all() as { id: string; title: string; updated_at: number }[];
+  return rows.map((r) => ({ id: r.id, title: r.title, updatedAt: r.updated_at }));
+}
+
+/** A conversation with all of its messages. */
+export function getConversation(
+  id: string
+): { id: string; title: string; messages: Message[] } | null {
+  const row = getDb().prepare("SELECT id, title FROM conversations WHERE id = ?").get(id) as
+    | { id: string; title: string }
+    | undefined;
+  if (!row) return null;
+  return { id: row.id, title: row.title, messages: allMessages(id) };
+}
+
 /**
  * Search past turns by date range and/or keywords. Returns each match as a
  * "turn": the user question plus the assistant answers that followed, so the

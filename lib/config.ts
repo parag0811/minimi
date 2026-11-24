@@ -9,7 +9,7 @@ export const config = {
   googleApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY ?? "",
 
   /** Gemini model id. Configurable so you can swap models without code changes. */
-  googleModel: process.env.GOOGLE_MODEL ?? "gemini-3.8-flash",
+  googleModel: process.env.GOOGLE_MODEL ?? "gemini-3.5-flash-lite",
 
   /** Tavily search API key (free tier via tavily.com). */
   tavilyApiKey: process.env.TAVILY_API_KEY ?? "",
