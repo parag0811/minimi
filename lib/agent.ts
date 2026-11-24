@@ -10,12 +10,17 @@ export const tools = {
   recall_history: recallHistoryTool,
 };
 
-export function createAgentStream(messages: ModelMessage[]) {
+export interface AgentOptions {
+  onFinish?: (text: string) => void;
+}
+
+export function createAgentStream(messages: ModelMessage[], opts: AgentOptions = {}) {
   return streamText({
     model: google(config.googleModel),
     system: buildSystemPrompt(),
     messages,
     tools,
     stopWhen: isStepCount(10),
+    onFinish: opts.onFinish ? ({ text }) => opts.onFinish!(text) : undefined,
   });
 }

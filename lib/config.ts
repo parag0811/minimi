@@ -13,9 +13,6 @@ export const config = {
 
   /** Tavily search API key (free tier via tavily.com). */
   tavilyApiKey: process.env.TAVILY_API_KEY ?? "",
-
-  /** Where the SQLite database file lives (relative to the project root). */
-  databasePath: process.env.DATABASE_PATH ?? "data/chat.db",
 };
 
 /** True when the required API keys are present. The UI uses this to hint. */

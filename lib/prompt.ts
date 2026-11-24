@@ -6,7 +6,7 @@ export function buildSystemPrompt(): string {
     "",
     `Today is ${todayLabel()}. Resolve relative dates like "last Tuesday", "since Monday", or "3 November" against this date.`,
     "",
-    'Use web_search for anything factual, time-sensitive, or about current events (pricing, releases, news). Cite the sources you used as links.',
+    'Use web_search for anything factual, time-sensitive, or about current events (pricing, releases, news). At the end of your answer, list the sources you used as plain URLs.',
     'Use recall_history when the user refers to the past ("what did I ask", "last Tuesday", "since then", "is my answer still correct").',
     "",
     "If the user asks whether an earlier answer is still correct, recall that answer first, then search again and clearly state what changed or stayed the same.",

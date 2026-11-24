@@ -10,9 +10,8 @@
 
 import Database from "better-sqlite3";
 import { mkdirSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { dirname, join } from "node:path";
 import { randomUUID } from "node:crypto";
-import { config } from "./config";
 
 export type Role = "user" | "assistant";
 
@@ -53,7 +52,7 @@ interface MessageRow {
 const globalForDb = globalThis as unknown as { __chatDb?: Database.Database };
 
 function openDb(): Database.Database {
-  const file = resolve(process.cwd(), config.databasePath);
+  const file = join(process.cwd(), "data", "chat.db");
   mkdirSync(dirname(file), { recursive: true });
 
   const database = new Database(file);
